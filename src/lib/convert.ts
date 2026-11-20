@@ -1,3 +1,4 @@
+import type { AiOutput } from "./ai-prompt";
 import { hasBatchim } from "./easy-markup";
 import type { Level } from "./levels";
 import { EXTRA_WORDS, SAMPLES, findSample, type GlossaryEntry } from "./samples";
@@ -17,8 +18,14 @@ export interface ConversionResult {
   /** "{쉬운 말|원래 말}" 표기가 들어간 쉬운 글 */
   easyMarkup: string;
   glossary: GlossaryItem[];
-  /** 예시 글(직접 만든 결과)인지, 아무 글(단어만 바꾼 가짜 결과)인지 */
-  kind: "sample" | "custom";
+  /**
+   * sample: 미리 만들어 둔 예시 결과
+   * ai: Gemini가 만든 결과
+   * custom: AI 연결에 실패해서 사전 단어만 바꾼 결과
+   */
+  kind: "sample" | "ai" | "custom";
+  /** custom일 때 AI를 쓰지 못한 이유 */
+  fallbackReason?: "no-key" | "too-many" | "failed";
 }
 
 function makeId(): string {
@@ -39,7 +46,12 @@ export function findSentence(original: string, word: string): string {
 }
 
 function titleFrom(text: string): string {
-  const first = text.trim().split("\n").map((l) => l.trim()).find(Boolean) ?? "제목 없는 글";
+  const first =
+    text
+      .trim()
+      .split("\n")
+      .map((l) => l.trim())
+      .find(Boolean) ?? "제목 없는 글";
   const clean = first.replace(/^[[【(]+|[\]】)]+$/g, "").trim() || "제목 없는 글";
   return clean.length > 30 ? `${clean.slice(0, 30)}…` : clean;
 }
@@ -117,6 +129,36 @@ export function convertText(text: string, level: Level): ConversionResult {
     glossary,
     kind: "custom",
   };
+}
+
+/** 예시 글이면 미리 만든 결과를 돌려주고, 아니면 null (AI로 바꿔야 함) */
+export function convertSample(text: string, level: Level): ConversionResult | null {
+  return findSample(text) ? convertText(text, level) : null;
+}
+
+/** Gemini 결과를 화면에 쓰는 모양으로 바꿉니다. */
+export function buildAiResult(text: string, level: Level, ai: AiOutput): ConversionResult {
+  const original = text.trim();
+  return {
+    id: makeId(),
+    createdAt: new Date().toISOString(),
+    level,
+    original,
+    title: titleFrom(text),
+    summary: ai.summary,
+    easyMarkup: ai.easyMarkup,
+    glossary: glossaryFor(original, ai.words),
+    kind: "ai",
+  };
+}
+
+/** AI를 쓰지 못했을 때: 사전 단어만 바꾼 결과 */
+export function convertFallback(
+  text: string,
+  level: Level,
+  reason: NonNullable<ConversionResult["fallbackReason"]>,
+): ConversionResult {
+  return { ...convertText(text, level), fallbackReason: reason };
 }
 
 export function glossaryMeaningsFor(original: string, glossary: GlossaryItem[]): GlossaryItem[] {
