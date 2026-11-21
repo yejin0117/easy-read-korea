@@ -4,6 +4,8 @@
  */
 
 export interface QuizWord {
+  /** 내 단어장 퀴즈일 때 단어장 항목 id */
+  id?: string;
   word: string;
   easy: string;
   meaning: string;

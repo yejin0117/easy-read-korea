@@ -11,7 +11,7 @@ import { checkNumbers } from "@/lib/number-check";
 import { addVocab, useCollection, vocabStore } from "@/lib/storage";
 
 import { EasyText } from "./EasyText";
-import { WordQuiz } from "./WordQuiz";
+import { WordQuizCard } from "./WordQuiz";
 
 const FALLBACK_MESSAGE = {
   "no-key": "AI 키가 아직 설정되지 않았어요.",
@@ -153,7 +153,10 @@ export const ResultView = forwardRef<HTMLHeadingElement, { result: ConversionRes
           </Notice>
         )}
 
-        {/* 3. 어려운 단어 풀이 */}
+        {/* 3. 어려운 단어 퀴즈 (모달) */}
+        <WordQuizCard key={result.id} words={result.glossary} source={result.title} />
+
+        {/* 4. 어려운 단어 풀이 */}
         <div className="rounded-2xl border bg-card p-6 md:p-8">
           <h3 className="text-[1.375rem]">어려운 단어 풀이</h3>
           {result.glossary.length === 0 ? (
@@ -213,9 +216,6 @@ export const ResultView = forwardRef<HTMLHeadingElement, { result: ConversionRes
             </ul>
           )}
         </div>
-
-        {/* 4. 어려운 단어 퀴즈 */}
-        <WordQuiz key={result.id} words={result.glossary} source={result.title} />
       </section>
     );
   },
