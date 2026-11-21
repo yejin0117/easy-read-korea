@@ -4,11 +4,13 @@ import { ko } from "date-fns/locale";
 import { BookOpen, CheckCircle2, Eye, RotateCcw, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { WordQuizDialog } from "@/components/convert/WordQuiz";
 import { ConfirmDelete } from "@/components/site/ConfirmDelete";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { plainEasy } from "@/lib/easy-markup";
 import { levelLabel } from "@/lib/levels";
+import { canMakeQuiz } from "@/lib/quiz";
 import {
   historyStore,
   removeHistory,
@@ -165,6 +167,7 @@ const FILTERS: { id: Filter; label: string }[] = [
 
 function Vocabulary({ items }: { items: VocabItem[] }) {
   const [filter, setFilter] = useState<Filter>("all");
+  const [quizOpen, setQuizOpen] = useState(false);
 
   if (items.length === 0) {
     return (
@@ -178,8 +181,43 @@ function Vocabulary({ items }: { items: VocabItem[] }) {
   const count = (f: Filter) => (f === "all" ? items.length : items.filter((i) => i.status === f).length);
   const shown = filter === "all" ? items : items.filter((i) => i.status === filter);
 
+  const quizWords = shown.map((v) => ({
+    id: v.id,
+    word: v.word,
+    easy: v.easy,
+    meaning: v.meaning,
+    sentence: v.sentence,
+  }));
+  const quizReady = canMakeQuiz(quizWords);
+  const filterName = FILTERS.find((f) => f.id === filter)?.label ?? "전체";
+
   return (
     <div className="space-y-5">
+      <div className="flex flex-col gap-3 rounded-2xl border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-lg font-bold">단어장 퀴즈</p>
+          <p className="text-base text-muted-foreground">
+            {quizReady
+              ? `지금 보이는 ‘${filterName}’ 단어 ${shown.length}개로 퀴즈를 풀어요.`
+              : "퀴즈를 풀려면 단어가 2개 이상 필요해요."}
+          </p>
+        </div>
+        <Button
+          className="shrink-0 self-start sm:self-center"
+          disabled={!quizReady}
+          onClick={() => setQuizOpen(true)}
+        >
+          퀴즈 풀기
+        </Button>
+      </div>
+      <WordQuizDialog
+        open={quizOpen}
+        onOpenChange={setQuizOpen}
+        title="내 단어장 퀴즈"
+        words={quizWords}
+        mode={{ kind: "vocab" }}
+      />
+
       <div role="group" aria-label="단어 거르기" className="flex flex-wrap gap-2">
         {FILTERS.map((f) => (
           <Button
