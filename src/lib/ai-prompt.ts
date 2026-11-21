@@ -26,6 +26,8 @@ const COMMON_RULES = `너는 어려운 한국어 글(공문, 계약서, 약 설�
   예: "벌금에 처해질 수 있음"을 "벌금을 내요"로 바꾸면 안 돼. "벌금을 낼 수 있어요"로 써.
 - 원문에 없는 사실, 원문에 없는 숫자, 조언을 지어내지 마. 뜻을 설명하는 말은 덧붙여도 돼.
 - 원문의 내용을 하나도 빠뜨리지 마.
+- 누가 하는지(주체)를 바꾸지 마. 원문에서 서로 다른 사람·기관이면 쉬운 글에서도 구분해. (예: '관리사무소'와 '관리주체'를 하나로 합치지 않기)
+- '예정, 할 수 있다, 해야 한다, 하지 않는다' 같은 말은 빼지 마. (예: "시행될 예정임" → "할 예정이에요")
 
 [답하기 전에 스스로 확인할 것]
 1. 원문의 숫자가 모두 들어 있는가?
@@ -38,10 +40,11 @@ const EXAMPLE_ORIGINAL =
 
 const LEVEL_RULES: Record<Level, { rules: string; example: string }> = {
   elementary: {
-    rules: `[읽는 사람: 초등학생]
-- 한 문장은 8~10어절 정도로 짧게 써.
-- 초등학생이 집이나 학교에서 쓰는 말만 써. 한자어와 법률 용어는 쉬운 우리말로 바꿔.
-- 꼭 남겨야 하는 이름(기관 이름 등)은 "○○은 ~하는 곳이에요."처럼 설명 문장을 따로 붙여.
+    rules: `[읽는 사람: 초등학생 (3~4학년)]
+- 한 문장은 8어절 이하로 써. 그보다 길면 꼭 두 문장으로 나눠. 요약 문장도 똑같아.
+- 초등학생이 집이나 학교에서 쓰는 말만 써. 한자어와 법률 용어는 모두 쉬운 우리말로 바꿔.
+  예: 보호자 → 부모님 같은 어른, 제출하다 → 내다, 책임지지 않다 → 물어 주지 않다, 거주자 → 사는 사람
+- 기관이나 사람을 가리키는 어려운 이름은 그대로 두되, 처음 나올 때 "○○은 ~하는 곳이에요."처럼 설명 문장을 따로 써.
 - 누가 하는지(회사, 학생, 부모님 등) 늘 밝혀.
 - 비율은 쉽게 풀어 줘. 예: 80% 이상 → 80% 이상(10번 중 8번 이상)`,
     example:
@@ -70,11 +73,11 @@ const LEVEL_RULES: Record<Level, { rules: string; example: string }> = {
 };
 
 const OUTPUT_RULES = `[답변 형식] 아래 JSON 하나만 출력해.
-- summary: 핵심 내용을 해요체 문장 3개로 써. 번호, 기호, 괄호 표시를 넣지 마.
+- summary: 핵심 내용을 해요체 문장 3개로 써. 문장 길이는 쉬운 글과 같은 수준 기준을 지키고, 쉬운 글보다 어렵게 쓰지 마. 마침표로 끝내고, 번호·기호·괄호 표시는 넣지 마.
 - easy_text: 쉬운 글 전체. 문단은 빈 줄로 나눠. 중괄호 { } 와 세로선 | 은 쓰지 마.
-- changes: 원문의 어려운 표현이 쉬운 글에서 무엇으로 바뀌었는지 최대 10개.
-  original은 원문에 나온 글자 그대로, easy는 easy_text에 나온 글자 그대로 써.
-  글자가 같거나 조사·어미만 달라진 것은 넣지 마.
+- changes: 원문의 어려운 낱말이 쉬운 글에서 무엇으로 바뀌었는지 최대 10개.
+  original은 원문에 나온 1~3어절의 짧은 표현, easy는 easy_text에 나온 짧은 표현을 글자 그대로 써.
+  문장이나 절 전체를 넣지 마. 글자가 같거나 조사·어미만 달라진 것은 넣지 마.
 - words: 원문에 실제로 있는 어려운 단어 최대 8개. word는 원문 글자 그대로,
   easy는 쉬운 말, meaning은 읽는 사람 수준에 맞는 한 문장 뜻풀이.`;
 
@@ -95,7 +98,7 @@ export function buildSystemPrompt(level: Level): string {
 
 /** 처음 결과가 원문을 너무 많이 베꼈거나 문장이 길 때 덧붙이는 지시 */
 export const REWRITE_HINT =
-  "\n\n[다시 쓰기] 방금 결과는 원문 문장을 거의 그대로 옮겼거나 문장이 너무 길었어. 원문 문장을 따라 쓰지 말고, 뜻만 가져와서 짧은 문장으로 처음부터 새로 써. 숫자는 그대로 둬.";
+  "\n\n[다시 쓰기] 방금 결과는 원문 문장을 거의 그대로 옮겼거나, 쉬운 글이나 요약의 문장이 너무 길었어. 원문 문장을 따라 쓰지 말고, 뜻만 가져와서 수준 기준에 맞는 짧은 문장으로 처음부터 새로 써. 요약도 짧게 써. 숫자는 그대로 둬.";
 
 /** Gemini의 JSON 응답 모양 (responseSchema) */
 export const RESPONSE_SCHEMA = {
@@ -134,6 +137,11 @@ export interface AiOutput {
   words: GlossaryEntry[];
 }
 
+/** 형광펜이 문장 절반을 덮지 않게, 짧은 표현만 표시 */
+export const MAX_CHANGE_EOJEOL = { original: 3, easy: 4 } as const;
+
+const eojeols = (text: string) => text.split(/\s+/).filter(Boolean).length;
+
 export interface Change {
   original: string;
   easy: string;
@@ -152,9 +160,10 @@ export function toPlain(text: string): string {
 
 /** 요약 문장 앞의 "1.", "1)", "①", "-" 같은 번호·기호를 지웁니다. */
 export function cleanSummaryLine(line: string): string {
-  return toPlain(line)
+  const text = toPlain(line)
     .replace(/^\s*(?:\d+\s*[.)．:]|[①-⑩]|[-*•·])\s*/, "")
     .trim();
+  return text && !/[.!?。]$/.test(text) ? `${text}.` : text;
 }
 
 /**
@@ -169,6 +178,8 @@ export function applyChanges(easyText: string, changes: Change[], original: stri
         c.original.length > 0 &&
         c.easy.length > 0 &&
         c.original !== c.easy &&
+        eojeols(c.original) <= MAX_CHANGE_EOJEOL.original &&
+        eojeols(c.easy) <= MAX_CHANGE_EOJEOL.easy &&
         !c.easy.includes(c.original) &&
         original.includes(c.original),
     )

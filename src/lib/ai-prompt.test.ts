@@ -74,6 +74,9 @@ describe("Gemini 응답 정리", () => {
     expect(cleanSummaryLine("② 쉬어요.")).toBe("쉬어요.");
     expect(cleanSummaryLine("- {줘야|교부하여야} 해요.")).toBe("줘야 해요.");
     expect(cleanSummaryLine("15일을 받아요.")).toBe("15일을 받아요.");
+    expect(cleanSummaryLine("공사비는 모아 둔 돈에서 나와요")).toBe(
+      "공사비는 모아 둔 돈에서 나와요.",
+    );
   });
 
   it("바뀐 말은 처음 나온 한 곳에만, 겹치지 않게 표시한다", () => {
@@ -91,16 +94,36 @@ describe("Gemini 응답 정리", () => {
     );
   });
 
+  it("문장 절반을 덮는 긴 바뀐 말은 표시하지 않는다", () => {
+    const easy = "입주민은 물이 끊기기 전날까지 쓸 물을 미리 받아 두어야 해요.";
+    const out = applyChanges(
+      easy,
+      [
+        {
+          original: "생활용수를 사전에 확보하여 주시기 바라며",
+          easy: "물이 끊기기 전날까지 쓸 물을 미리 받아 두어야 해요",
+        },
+        { original: "사전에", easy: "미리" },
+      ],
+      "필요한 생활용수를 사전에 확보하여 주시기 바라며",
+    );
+    expect(out).toBe("입주민은 물이 끊기기 전날까지 쓸 물을 {미리|사전에} 받아 두어야 해요.");
+  });
+
   it("수준마다 지시문과 예시가 다르다", () => {
     const elementary = buildSystemPrompt("elementary");
     const middle = buildSystemPrompt("middle");
     const learner = buildSystemPrompt("learner");
-    expect(elementary).toContain("[읽는 사람: 초등학생]");
+    expect(elementary).toContain("[읽는 사람: 초등학생 (3~4학년)]");
+    expect(elementary).toContain("8어절 이하");
     expect(middle).toContain("[읽는 사람: 중학생]");
     expect(learner).toContain("[읽는 사람: 한국어를 배우기 시작한 어른]");
     expect(learner).toContain("'대출 정지'라고 해요");
     expect(elementary).not.toContain("[읽는 사람: 중학생]");
-    for (const p of [elementary, middle, learner]) expect(p).toContain("단어만 바꿔 끼우지 마");
+    for (const p of [elementary, middle, learner]) {
+      expect(p).toContain("단어만 바꿔 끼우지 마");
+      expect(p).toContain("누가 하는지(주체)를 바꾸지 마");
+    }
   });
 
   it("AI 결과는 kind가 ai이고 단어 풀이에 나온 문장이 붙는다", () => {
