@@ -63,15 +63,20 @@ export async function requestEasyText(options: Options): Promise<AiConvertRespon
   if (!first.ok) return first;
 
   const easy = plainEasy(first.output.easyMarkup);
-  const reason = rewriteReason(options.text, easy, options.level);
+  const reason = rewriteReason(options.text, easy, options.level, first.output.summary);
   if (!reason) return first;
 
   console.warn(`Gemini result needs rewrite (${reason}), asking once more`);
   const second = await requestOnce(options, REWRITE_HINT);
   if (!second.ok) return first;
 
-  const ratio = (r: typeof first) => copyRatio(options.text, plainEasy(r.output.easyMarkup));
-  return ratio(second) <= ratio(first) ? second : first;
+  // 기준을 통과한 쪽을 먼저 고르고, 둘 다 같으면 원문과 덜 겹치는 쪽
+  const score = (r: Extract<AiConvertResponse, { ok: true }>) => {
+    const plain = plainEasy(r.output.easyMarkup);
+    const passes = rewriteReason(options.text, plain, options.level, r.output.summary) === null;
+    return (passes ? 0 : 1) + copyRatio(options.text, plain);
+  };
+  return score(second) <= score(first) ? second : first;
 }
 
 async function requestOnce(

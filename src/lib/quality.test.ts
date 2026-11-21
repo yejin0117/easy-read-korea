@@ -29,4 +29,17 @@ describe("쉬운 글 품질 검사", () => {
     expect(longSentenceShare(long, "elementary")).toBe(0.5);
     expect(rewriteReason("전혀 다른 원문입니다.", long, "elementary")).toMatch(/^long/);
   });
+
+  it("초등학생 결과에서 요약이 본문보다 길면 다시 쓰라고 한다", () => {
+    const easy = "우리 아파트에서 오래된 물관을 바꾸는 공사를 해요. 공사 날에는 물이 안 나와요.";
+    const summary = [
+      "아파트 낡은 물관을 바꾸는 공사 때문에 2026년 12월 3일 목요일 오전 9시부터 오후 6시까지 모든 집에 물이 안 나와요.",
+    ];
+    expect(rewriteReason("전혀 다른 원문입니다.", easy, "elementary", summary)).toBe(
+      "long summary",
+    );
+    expect(
+      rewriteReason("전혀 다른 원문입니다.", easy, "elementary", ["물이 안 나와요."]),
+    ).toBeNull();
+  });
 });

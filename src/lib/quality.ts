@@ -7,7 +7,7 @@ import type { Level } from "./levels";
 
 /** 이 어절 수를 넘으면 '너무 긴 문장'으로 봄 (목표 길이보다 넉넉하게 잡은 한계) */
 export const MAX_EOJEOL: Record<Level, number> = {
-  elementary: 15,
+  elementary: 12,
   middle: 20,
   learner: 14,
 };
@@ -54,10 +54,17 @@ export function longSentenceShare(easy: string, level: Level): number {
 }
 
 /** 다시 써 달라고 해야 하면 그 이유를, 괜찮으면 null을 돌려줍니다. */
-export function rewriteReason(original: string, easy: string, level: Level): string | null {
+export function rewriteReason(
+  original: string,
+  easy: string,
+  level: Level,
+  summary: string[] = [],
+): string | null {
   const ratio = copyRatio(original, easy);
   if (ratio >= COPY_LIMIT) return `copy ${ratio.toFixed(2)}`;
   const share = longSentenceShare(easy, level);
   if (share > 1 / 3) return `long ${share.toFixed(2)}`;
+  // 요약이 본문보다 어려우면 안 됨: 요약 문장이 하나라도 기준보다 길면 다시 쓰기
+  if (summary.some((line) => line.split(/\s+/).length > MAX_EOJEOL[level])) return "long summary";
   return null;
 }
