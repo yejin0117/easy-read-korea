@@ -123,6 +123,10 @@ describe("Gemini 응답 정리", () => {
     for (const p of [elementary, middle, learner]) {
       expect(p).toContain("단어만 바꿔 끼우지 마");
       expect(p).toContain("누가 하는지(주체)를 바꾸지 마");
+      expect(p).toContain("부탁과 의무를 구분해");
+      expect(p).toContain("살 사람 X");
+      expect(p).toContain("쉼표까지 원문 표기 그대로");
+      expect(p).toContain("원문의 어려운 낱말을 요약에 그대로 쓰지 마");
     }
   });
 
