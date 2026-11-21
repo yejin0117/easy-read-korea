@@ -11,6 +11,7 @@ import { checkNumbers } from "@/lib/number-check";
 import { addVocab, useCollection, vocabStore } from "@/lib/storage";
 
 import { EasyText } from "./EasyText";
+import { WordQuiz } from "./WordQuiz";
 
 const FALLBACK_MESSAGE = {
   "no-key": "AI 키가 아직 설정되지 않았어요.",
@@ -212,6 +213,9 @@ export const ResultView = forwardRef<HTMLHeadingElement, { result: ConversionRes
             </ul>
           )}
         </div>
+
+        {/* 4. 어려운 단어 퀴즈 */}
+        <WordQuiz key={result.id} words={result.glossary} source={result.title} />
       </section>
     );
   },
