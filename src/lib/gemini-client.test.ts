@@ -11,7 +11,8 @@ const GOOD = JSON.stringify({
           {
             text: JSON.stringify({
               summary: ["a", "b", "c"],
-              easy_markup: "기한이 {지나면|경과 시} 돈을 낼 수 있어요.",
+              easy_text: "기한이 지나면 돈을 낼 수 있어요.",
+              changes: [{ original: "경과 시", easy: "지나면" }],
               words: [{ word: "경과", easy: "지남", meaning: "시간이 지나감" }],
             }),
           },
@@ -20,6 +21,20 @@ const GOOD = JSON.stringify({
     },
   ],
 });
+
+/** Gemini 응답 모양으로 감싸기 */
+const wrap = (easy: string) =>
+  JSON.stringify({
+    candidates: [
+      {
+        content: {
+          parts: [
+            { text: JSON.stringify({ summary: ["a"], easy_text: easy, changes: [], words: [] }) },
+          ],
+        },
+      },
+    ],
+  });
 
 const reply = (status: number, body = "{}") => new Response(body, { status });
 const noSleep = () => Promise.resolve();
@@ -109,5 +124,41 @@ describe("Gemini 재시도", () => {
     expect(new Set(modelOrder("gemini-2.5-flash")).size).toBe(
       modelOrder("gemini-2.5-flash").length,
     );
+  });
+
+  it("원문을 거의 베낀 결과면 한 번만 다시 써 달라고 한다", async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce(reply(200, wrap(TEXT)))
+      .mockResolvedValueOnce(
+        reply(200, wrap("기한이 지나면 돈을 낼 수 있어요. 종이에 써서 내야 해요.")),
+      );
+    const res = await requestEasyText({
+      apiKey: "k",
+      models: ["m1"],
+      text: TEXT,
+      level: "middle",
+      fetcher,
+      sleep: noSleep,
+    });
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(String(fetcher.mock.calls[1]![1].body)).toContain("[다시 쓰기]");
+    expect(res.ok && res.output.easyMarkup).toContain("종이에 써서");
+  });
+
+  it("다시 쓰기 요청이 실패하면 처음 결과를 쓴다", async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce(reply(200, wrap(TEXT)))
+      .mockResolvedValue(reply(404));
+    const res = await requestEasyText({
+      apiKey: "k",
+      models: ["m1"],
+      text: TEXT,
+      level: "middle",
+      fetcher,
+      sleep: noSleep,
+    });
+    expect(res.ok).toBe(true);
   });
 });
