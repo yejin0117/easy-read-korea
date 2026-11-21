@@ -12,6 +12,12 @@ import { addVocab, useCollection, vocabStore } from "@/lib/storage";
 
 import { EasyText } from "./EasyText";
 
+const FALLBACK_MESSAGE = {
+  "no-key": "AI 키가 아직 설정되지 않았어요.",
+  "too-many": "지금 AI 사용량이 많아요. 잠시 후 다시 시도해 주세요.",
+  failed: "AI가 잠시 응답하지 않았어요. 잠시 후 다시 시도해 주세요.",
+} as const;
+
 function formatNumber(n: string) {
   const num = Number(n);
   return Number.isFinite(num) && n.length > 3 ? num.toLocaleString("ko-KR") : n;
@@ -31,7 +37,12 @@ export const ResultView = forwardRef<HTMLHeadingElement, { result: ConversionRes
             <p className="text-base text-muted-foreground">
               {levelLabel(result.level)} 수준 · {result.title}
             </p>
-            <h2 id="result-title" ref={headingRef} tabIndex={-1} className="scroll-mt-40 text-[1.75rem] outline-none">
+            <h2
+              id="result-title"
+              ref={headingRef}
+              tabIndex={-1}
+              className="scroll-mt-40 text-[1.75rem] outline-none"
+            >
               풀어읽기 결과
             </h2>
           </div>
@@ -46,11 +57,21 @@ export const ResultView = forwardRef<HTMLHeadingElement, { result: ConversionRes
           </Button>
         </div>
 
-        <Notice tone="info" title="예시용 결과예요">
-          {result.kind === "sample"
-            ? "아직 AI가 연결되지 않아, 미리 만들어 둔 예시 결과를 보여 드려요."
-            : "아직 AI가 연결되지 않아, 사전에 있는 어려운 단어만 바꾼 결과예요. 문장은 그대로일 수 있어요."}
-        </Notice>
+        {result.kind === "ai" ? (
+          <Notice tone="info" title="AI(Google Gemini)가 바꾼 결과예요">
+            AI는 틀릴 수 있어요. 계약, 약 복용처럼 중요한 내용은 ‘원문 같이 보기’로 꼭 함께 확인해
+            주세요.
+          </Notice>
+        ) : result.kind === "sample" ? (
+          <Notice tone="info" title="예시 결과예요">
+            예시 글은 미리 만들어 둔 결과를 보여 드려요. 직접 넣은 글은 AI가 바꿔 드려요.
+          </Notice>
+        ) : (
+          <Notice tone="warning" title="AI 연결에 실패해서 간단히 바꾼 결과예요">
+            {FALLBACK_MESSAGE[result.fallbackReason ?? "failed"]} 지금은 사전에 있는 어려운 단어만
+            바꿨고, 문장은 그대로일 수 있어요.
+          </Notice>
+        )}
 
         {/* 1. 핵심 3줄 요약 */}
         <div className="rounded-2xl border bg-card p-6 md:p-8">
@@ -91,8 +112,8 @@ export const ResultView = forwardRef<HTMLHeadingElement, { result: ConversionRes
             </div>
             {changed > 0 ? (
               <p className="mt-1 text-base text-muted-foreground">
-                <mark className="marker-highlight text-foreground">형광펜</mark> 표시된 말에 마우스를
-                올리거나 눌러 보세요. 원래 단어와 뜻이 나와요.
+                <mark className="marker-highlight text-foreground">형광펜</mark> 표시된 말에
+                마우스를 올리거나 눌러 보세요. 원래 단어와 뜻이 나와요.
               </p>
             ) : null}
             <div className="mt-5">
@@ -108,16 +129,16 @@ export const ResultView = forwardRef<HTMLHeadingElement, { result: ConversionRes
           </Notice>
         ) : check.ok ? (
           <Notice tone="success" title="변환 오류 확인: 숫자·날짜가 원문과 같아요">
-            원문의 숫자·날짜 {check.checked.length}개가 쉬운 글에 모두 그대로 있어요. 뜻까지 맞는지는
-            원문과 함께 확인해 주세요.
+            원문의 숫자·날짜 {check.checked.length}개가 쉬운 글에 모두 그대로 있어요. 뜻까지
+            맞는지는 원문과 함께 확인해 주세요.
           </Notice>
         ) : (
           <Notice tone="warning" title="변환 오류 확인: 원문과 다른 숫자가 있어요">
             <ul className="mt-1 list-disc space-y-1 pl-5">
               {check.missing.length > 0 ? (
                 <li>
-                  원문에 있는 숫자 <strong>{check.missing.map(formatNumber).join(", ")}</strong>이(가)
-                  쉬운 글에 없어요.
+                  원문에 있는 숫자 <strong>{check.missing.map(formatNumber).join(", ")}</strong>
+                  이(가) 쉬운 글에 없어요.
                 </li>
               ) : null}
               {check.added.length > 0 ? (
@@ -154,7 +175,9 @@ export const ResultView = forwardRef<HTMLHeadingElement, { result: ConversionRes
                       </p>
                       <p className="mt-1">{g.meaning}</p>
                       {g.sentence ? (
-                        <p className="mt-1 text-base text-muted-foreground">나온 문장: “{g.sentence}”</p>
+                        <p className="mt-1 text-base text-muted-foreground">
+                          나온 문장: “{g.sentence}”
+                        </p>
                       ) : null}
                     </div>
                     {saved ? (

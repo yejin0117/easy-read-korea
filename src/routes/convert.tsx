@@ -6,7 +6,13 @@ import { ResultView } from "@/components/convert/ResultView";
 import { Notice } from "@/components/site/Notice";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { convertText, type ConversionResult } from "@/lib/convert";
+import {
+  buildAiResult,
+  convertFallback,
+  convertSample,
+  type ConversionResult,
+} from "@/lib/convert";
+import { convertWithAI } from "@/lib/gemini";
 import { LEVELS, type Level } from "@/lib/levels";
 import { SAMPLES } from "@/lib/samples";
 import { historyStore, saveHistory, useCollection } from "@/lib/storage";
@@ -22,7 +28,8 @@ export const Route = createFileRoute("/convert")({
       { title: "변환하기 — 풀어읽기" },
       {
         name: "description",
-        content: "어려운 글을 붙여 넣고 수준을 고르면 핵심 3줄 요약, 쉬운 글, 단어 풀이를 보여 드려요.",
+        content:
+          "어려운 글을 붙여 넣고 수준을 고르면 핵심 3줄 요약, 쉬운 글, 단어 풀이를 보여 드려요.",
       },
       { property: "og:title", content: "변환하기 — 풀어읽기" },
       {
@@ -75,13 +82,27 @@ function ConvertPage() {
     }
     setError(null);
     setLoading(true);
-    window.setTimeout(() => {
-      const next = convertText(text, level);
-      saveHistory(next);
-      setResult(next);
-      setLoading(false);
-      void navigate({ search: { id: next.id }, replace: true });
-    }, 700);
+    void runConvert(text, level);
+  }
+
+  async function runConvert(source: string, chosen: Level) {
+    // 예시 글은 미리 만든 결과를 바로 보여 줌 (시연용, API 사용 안 함)
+    let next = convertSample(source, chosen);
+    if (!next) {
+      try {
+        const res = await convertWithAI({ data: { text: source, level: chosen } });
+        next = res.ok
+          ? buildAiResult(source, chosen, res.output)
+          : convertFallback(source, chosen, res.reason);
+      } catch (e) {
+        console.error(e);
+        next = convertFallback(source, chosen, "failed");
+      }
+    }
+    saveHistory(next);
+    setResult(next);
+    setLoading(false);
+    void navigate({ search: { id: next.id }, replace: true });
   }
 
   return (
@@ -168,7 +189,11 @@ function ConvertPage() {
         {/* 수준 선택 */}
         <fieldset>
           <legend className="text-[1.25rem] font-bold">2. 누가 읽나요?</legend>
-          <div role="radiogroup" aria-label="읽는 사람 수준" className="mt-3 grid gap-3 sm:grid-cols-3">
+          <div
+            role="radiogroup"
+            aria-label="읽는 사람 수준"
+            className="mt-3 grid gap-3 sm:grid-cols-3"
+          >
             {LEVELS.map((l) => {
               const selected = level === l.id;
               return (
