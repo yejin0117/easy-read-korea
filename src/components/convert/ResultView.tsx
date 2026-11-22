@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 import { Notice } from "@/components/site/Notice";
 import { Button } from "@/components/ui/button";
-import type { ConversionResult } from "@/lib/convert";
+import type { ConversionResult, GlossaryItem } from "@/lib/convert";
 import { OPENDICT_CREDIT, OPENDICT_LICENSE } from "@/lib/dictionary";
 import { countChanged, plainEasy } from "@/lib/easy-markup";
 import { levelLabel } from "@/lib/levels";
@@ -23,6 +23,75 @@ const FALLBACK_MESSAGE = {
 function formatNumber(n: string) {
   const num = Number(n);
   return Number.isFinite(num) && n.length > 3 ? num.toLocaleString("ko-KR") : n;
+}
+
+function DictCredit({ edited }: { edited: boolean }) {
+  return (
+    <p>
+      출처:{" "}
+      <a
+        href="https://opendict.korean.go.kr"
+        target="_blank"
+        rel="noreferrer"
+        className="underline underline-offset-2"
+      >
+        {OPENDICT_CREDIT}
+      </a>{" "}
+      ({OPENDICT_LICENSE}
+      {edited ? ", 쉬운 말로 고쳐 씀" : ""})
+    </p>
+  );
+}
+
+/** 단어 풀이의 뜻: 사전 뜻이 있으면 사전 원문을, 없으면 AI 풀이를 보여 줍니다. */
+function GlossaryMeaning({ entry: g }: { entry: GlossaryItem }) {
+  const dict = g.dictMeanings ?? [];
+  if (g.source === "dict" && dict.length > 0) {
+    return (
+      <div className="mt-1">
+        {dict.length === 1 ? (
+          <p>사전 뜻: {dict[0]?.definition}</p>
+        ) : (
+          <>
+            <p>사전 뜻</p>
+            <ul className="mt-0.5 space-y-0.5">
+              {dict.map((d) => (
+                <li key={d.headword}>
+                  · <span className="font-semibold">{d.headword}</span>: {d.definition}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        <div className="mt-1 text-base text-muted-foreground">
+          <DictCredit edited={false} />
+        </div>
+      </div>
+    );
+  }
+
+  // 예전 기록: 쉬운 뜻풀이 + 사전 뜻 한 줄
+  if (g.source === "dict" && g.dictDefinition) {
+    const edited = g.dictDefinition !== g.meaning;
+    return (
+      <>
+        <p className="mt-1">{g.meaning}</p>
+        <div className="mt-1 text-base text-muted-foreground">
+          {edited ? <p>사전 뜻: {g.dictDefinition}</p> : null}
+          <DictCredit edited={edited} />
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <p className="mt-1">{g.meaning}</p>
+      {g.source === "ai" ? (
+        <p className="mt-1 text-base text-muted-foreground">AI 풀이 (사전에서 찾지 못한 단어)</p>
+      ) : null}
+    </>
+  );
 }
 
 export const ResultView = forwardRef<HTMLHeadingElement, { result: ConversionResult }>(
@@ -178,32 +247,7 @@ export const ResultView = forwardRef<HTMLHeadingElement, { result: ConversionRes
                         <span className="sr-only">의 쉬운 말은 </span>
                         <span className="font-semibold text-primary">{g.easy}</span>
                       </p>
-                      <p className="mt-1">{g.meaning}</p>
-                      {g.source === "dict" && g.dictDefinition ? (
-                        <div className="mt-1 text-base text-muted-foreground">
-                          {g.dictDefinition !== g.meaning ? (
-                            <p>사전 뜻: {g.dictDefinition}</p>
-                          ) : null}
-                          <p>
-                            출처:{" "}
-                            <a
-                              href="https://opendict.korean.go.kr"
-                              target="_blank"
-                              rel="noreferrer"
-                              className="underline underline-offset-2"
-                            >
-                              {OPENDICT_CREDIT}
-                            </a>{" "}
-                            ({OPENDICT_LICENSE}
-                            {g.dictDefinition !== g.meaning ? ", 쉬운 말로 고쳐 씀" : ""})
-                          </p>
-                        </div>
-                      ) : null}
-                      {g.source === "ai" ? (
-                        <p className="mt-1 text-base text-muted-foreground">
-                          AI 풀이 (사전에서 찾지 못한 단어)
-                        </p>
-                      ) : null}
+                      <GlossaryMeaning entry={g} />
                       {g.sentence ? (
                         <p className="mt-1 text-base text-muted-foreground">
                           나온 문장: “{g.sentence}”

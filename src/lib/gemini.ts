@@ -56,7 +56,6 @@ export const convertWithAI = createServerFn({ method: "POST" })
       const words = await addDictionaryMeanings({
         words: result.output.words,
         original: data.text,
-        level: data.level,
         opendictKey,
         // 뜻 고르기는 두 번째 키를 먼저 써서 사용량을 나눔
         geminiKeys: [...keys].reverse(),
