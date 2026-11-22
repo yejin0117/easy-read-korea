@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { findSenses, lookupQueries, normalizeHeadword, parseOpendict } from "./dictionary";
+import {
+  findSenses,
+  lookupQueries,
+  normalizeHeadword,
+  parseOpendict,
+  readPayload,
+} from "./dictionary";
 import { mergeMeanings, parsePicks } from "./word-meanings";
 
 const payload = {
@@ -95,5 +101,39 @@ describe("뜻 고르기 합치기", () => {
       { word: "세대", sense: 2, meaning: "뜻" },
     ]);
     expect(parsePicks("not json")).toEqual([]);
+  });
+});
+
+describe("우리말샘 XML 응답", () => {
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<channel><title>우리말샘</title><total>2</total>
+<item><word>경과</word>
+<sense><sense_no>001</sense_no><definition><![CDATA[시간이 지나감.]]></definition><pos>명사</pos><type>일반어</type></sense>
+<sense><sense_no>002</sense_no><definition>일이 되어 가는 과정.</definition><pos>명사</pos><type>일반어</type></sense>
+</item>
+<item><word>경과</word><sense><definition>사투리 뜻</definition><type>지역어(방언)</type></sense></item>
+</channel>`;
+
+  it("XML도 JSON과 같이 뜻을 읽는다 (방언 제외)", () => {
+    expect(parseOpendict(readPayload(xml), "경과").map((s) => s.definition)).toEqual([
+      "시간이 지나감.",
+      "일이 되어 가는 과정.",
+    ]);
+  });
+
+  it("XML로 와도 사전 뜻을 찾는다", async () => {
+    const ok = async () => new Response(xml);
+    expect(await findSenses("경과한", "경과", "k", ok)).toHaveLength(2);
+  });
+
+  it("XML 오류 응답은 빈 결과", async () => {
+    const err = async () =>
+      new Response(
+        `<?xml version="1.0"?><error><error_code>020</error_code><message>등록되지 않은 키</message></error>`,
+      );
+    expect(await findSenses("경과", undefined, "k", err)).toEqual([]);
+    expect(readPayload("<error><error_code>020</error_code><message>x</message></error>")).toEqual({
+      error: { error_code: "020", message: "x" },
+    });
   });
 });

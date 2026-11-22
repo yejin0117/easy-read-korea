@@ -15,6 +15,7 @@ export const MAX_SENSES = 6;
 
 /** 풀어읽기에 맞지 않는 말(방언, 북한어, 옛말)은 후보에서 뺌 */
 const SKIP_TYPES = ["방언", "북한어", "옛말"];
+const isSkipped = (type: string) => SKIP_TYPES.some((t) => type.includes(t));
 
 export interface DictSense {
   definition: string;
@@ -42,7 +43,57 @@ export function cleanDefinition(text: string): string {
 const asArray = <T>(value: T | T[] | undefined | null): T[] =>
   value == null ? [] : Array.isArray(value) ? value : [value];
 
-/** 우리말샘 검색 응답(JSON)에서 찾는 말과 같은 표제어의 뜻만 골라냅니다. */
+/** XML 태그 하나의 글자를 꺼냅니다. CDATA와 기본 엔티티를 풉니다. */
+function tagText(xml: string, tag: string): string | undefined {
+  const m = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`).exec(xml);
+  if (!m?.[1]) return undefined;
+  return m[1]
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&amp;/g, "&")
+    .trim();
+}
+
+function tagBlocks(xml: string, tag: string): string[] {
+  return [...xml.matchAll(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, "g"))].map((m) => m[1] ?? "");
+}
+
+/**
+ * 우리말샘은 JSON을 요청해도 XML로 답할 때가 있어서, XML도 JSON과 같은 모양으로 바꿉니다.
+ * 오류 응답(<error>)은 { error: { error_code, message } }로 바꿉니다.
+ */
+export function xmlToPayload(xml: string): unknown {
+  const errorBlock = tagBlocks(xml, "error")[0];
+  if (errorBlock !== undefined) {
+    return {
+      error: {
+        error_code: tagText(errorBlock, "error_code"),
+        message: tagText(errorBlock, "message"),
+      },
+    };
+  }
+  const item = tagBlocks(xml, "item").map((block) => ({
+    word: tagText(block, "word"),
+    sense: tagBlocks(block, "sense").map((sense) => ({
+      definition: tagText(sense, "definition"),
+      pos: tagText(sense, "pos"),
+      type: tagText(sense, "type"),
+    })),
+  }));
+  return { channel: { item } };
+}
+
+/** 응답 글자를 JSON으로 읽고, XML이면 XML로 읽습니다. */
+export function readPayload(body: string): unknown {
+  const text = body.trim();
+  if (text.startsWith("<")) return xmlToPayload(text);
+  return JSON.parse(text) as unknown;
+}
+
+/** 우리말샘 검색 응답에서 찾는 말과 같은 표제어의 뜻만 골라냅니다. */
 export function parseOpendict(payload: unknown, query: string): DictSense[] {
   const channel = (payload as { channel?: { item?: unknown } } | null)?.channel;
   const target = normalizeHeadword(query);
@@ -54,7 +105,7 @@ export function parseOpendict(payload: unknown, query: string): DictSense[] {
     if (typeof item?.word !== "string" || normalizeHeadword(item.word) !== target) continue;
     for (const s of asArray(item.sense as unknown[] | undefined)) {
       const sense = s as { definition?: unknown; pos?: unknown; type?: unknown };
-      if (typeof sense?.type === "string" && SKIP_TYPES.includes(sense.type)) continue;
+      if (typeof sense?.type === "string" && isSkipped(sense.type)) continue;
       const definition =
         typeof sense?.definition === "string" ? cleanDefinition(sense.definition) : "";
       if (!definition || seen.has(definition)) continue;
@@ -91,13 +142,24 @@ export async function lookupOpendict(
       console.error(`Opendict error ${res.status} for "${query}"`);
       return [];
     }
-    const payload: unknown = await res.json();
+    const body = await res.text();
+    let payload: unknown;
+    try {
+      payload = readPayload(body);
+    } catch {
+      console.error(`Opendict unreadable response for "${query}": ${body.slice(0, 200)}`);
+      return [];
+    }
     const error = (payload as { error?: { error_code?: string; message?: string } } | null)?.error;
     if (error) {
       console.error(`Opendict error ${error.error_code ?? ""}: ${error.message ?? ""}`);
       return [];
     }
-    return parseOpendict(payload, query);
+    const senses = parseOpendict(payload, query);
+    if (senses.length === 0 && !body.includes("item")) {
+      console.warn(`Opendict no entry for "${query}": ${body.slice(0, 200)}`);
+    }
+    return senses;
   } catch (error) {
     console.error(`Opendict request failed for "${query}"`, error);
     return [];
