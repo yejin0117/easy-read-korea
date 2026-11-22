@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Notice } from "@/components/site/Notice";
 import { Button } from "@/components/ui/button";
 import type { ConversionResult } from "@/lib/convert";
+import { OPENDICT_CREDIT, OPENDICT_LICENSE } from "@/lib/dictionary";
 import { countChanged, plainEasy } from "@/lib/easy-markup";
 import { levelLabel } from "@/lib/levels";
 import { checkNumbers } from "@/lib/number-check";
@@ -178,6 +179,31 @@ export const ResultView = forwardRef<HTMLHeadingElement, { result: ConversionRes
                         <span className="font-semibold text-primary">{g.easy}</span>
                       </p>
                       <p className="mt-1">{g.meaning}</p>
+                      {g.source === "dict" && g.dictDefinition ? (
+                        <div className="mt-1 text-base text-muted-foreground">
+                          {g.dictDefinition !== g.meaning ? (
+                            <p>사전 뜻: {g.dictDefinition}</p>
+                          ) : null}
+                          <p>
+                            출처:{" "}
+                            <a
+                              href="https://opendict.korean.go.kr"
+                              target="_blank"
+                              rel="noreferrer"
+                              className="underline underline-offset-2"
+                            >
+                              {OPENDICT_CREDIT}
+                            </a>{" "}
+                            ({OPENDICT_LICENSE}
+                            {g.dictDefinition !== g.meaning ? ", 쉬운 말로 고쳐 씀" : ""})
+                          </p>
+                        </div>
+                      ) : null}
+                      {g.source === "ai" ? (
+                        <p className="mt-1 text-base text-muted-foreground">
+                          AI 풀이 (사전에서 찾지 못한 단어)
+                        </p>
+                      ) : null}
                       {g.sentence ? (
                         <p className="mt-1 text-base text-muted-foreground">
                           나온 문장: “{g.sentence}”

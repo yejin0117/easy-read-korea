@@ -4,6 +4,12 @@ export interface GlossaryEntry {
   word: string;
   easy: string;
   meaning: string;
+  /** 사전에서 찾을 때 쓰는 기본형 (AI가 알려 줌) */
+  base?: string;
+  /** 뜻풀이를 어디서 가져왔는지: 우리말샘 사전 또는 AI */
+  source?: "dict" | "ai";
+  /** 우리말샘에 실린 원래 뜻풀이 (source가 dict일 때) */
+  dictDefinition?: string;
 }
 
 export interface Sample {
@@ -44,11 +50,16 @@ const moveIn: Sample = {
     { word: "부과", easy: "내게 함", meaning: "세금이나 벌금 같은 돈을 내도록 정해서 매기는 것" },
     { word: "지참", easy: "가지고 감", meaning: "물건을 몸에 지니고 가는 것" },
     { word: "대리인", easy: "대신하는 사람", meaning: "본인 대신 어떤 일을 처리해 주는 사람" },
-    { word: "위임장", easy: "맡긴다는 서류", meaning: "내 일을 다른 사람에게 맡긴다고 적고 서명한 문서" },
+    {
+      word: "위임장",
+      easy: "맡긴다는 서류",
+      meaning: "내 일을 다른 사람에게 맡긴다고 적고 서명한 문서",
+    },
     {
       word: "확정일자",
       easy: "계약 날짜 확인 도장",
-      meaning: "계약서가 그 날짜에 있었다고 나라가 확인해 주는 날짜. 보증금을 지키는 데 도움이 돼요.",
+      meaning:
+        "계약서가 그 날짜에 있었다고 나라가 확인해 주는 날짜. 보증금을 지키는 데 도움이 돼요.",
     },
   ],
   levels: {
@@ -126,7 +137,11 @@ const lease: Sample = {
     { word: "연체", easy: "밀림", meaning: "내야 할 돈을 정해진 날까지 내지 못하고 밀리는 것" },
     { word: "2기", easy: "2번(2달 치)", meaning: "돈을 내는 차례 두 번. 월세라면 두 달 치예요." },
     { word: "해지", easy: "끝냄", meaning: "계약을 한쪽의 뜻으로 앞으로 끝내는 것" },
-    { word: "원상", easy: "처음 상태", meaning: "빌리기 전의 처음 모습. '원상회복'은 처음 모습으로 되돌리는 것이에요." },
+    {
+      word: "원상",
+      easy: "처음 상태",
+      meaning: "빌리기 전의 처음 모습. '원상회복'은 처음 모습으로 되돌리는 것이에요.",
+    },
     { word: "반환", easy: "돌려줌", meaning: "빌리거나 맡은 것을 주인에게 돌려주는 것" },
   ],
   levels: {
@@ -207,7 +222,11 @@ const medicine: Sample = {
     { word: "인후통", easy: "목 아픔", meaning: "목구멍이 붓고 아픈 것" },
     { word: "오한", easy: "춥고 떨림", meaning: "몸이 춥고 떨리는 느낌" },
     { word: "발열", easy: "열이 남", meaning: "몸의 온도가 보통보다 높아지는 것" },
-    { word: "관절통", easy: "뼈마디 아픔", meaning: "무릎·손목처럼 뼈와 뼈가 이어지는 곳이 아픈 것" },
+    {
+      word: "관절통",
+      easy: "뼈마디 아픔",
+      meaning: "무릎·손목처럼 뼈와 뼈가 이어지는 곳이 아픈 것",
+    },
     { word: "완화", easy: "덜어 줌", meaning: "아픔이나 증상을 누그러뜨려 덜하게 하는 것" },
     { word: "용법·용량", easy: "먹는 방법과 양", meaning: "약을 언제, 어떻게, 얼마나 먹는지" },
     { word: "식후", easy: "밥 먹은 뒤", meaning: "식사를 마친 다음" },

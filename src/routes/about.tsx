@@ -22,10 +22,14 @@ export const Route = createFileRoute("/about")({
       { title: "소개 — 풀어읽기" },
       {
         name: "description",
-        content: "풀어읽기를 만든 이유, 작동 방식, 수준별 규칙, 이용 전 주의사항과 앞으로의 계획을 소개해요.",
+        content:
+          "풀어읽기를 만든 이유, 작동 방식, 수준별 규칙, 이용 전 주의사항과 앞으로의 계획을 소개해요.",
       },
       { property: "og:title", content: "소개 — 풀어읽기" },
-      { property: "og:description", content: "어려운 글 앞에서 멈추는 사람이 없도록, 풀어읽기를 소개해요." },
+      {
+        property: "og:description",
+        content: "어려운 글 앞에서 멈추는 사람이 없도록, 풀어읽기를 소개해요.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -34,17 +38,41 @@ export const Route = createFileRoute("/about")({
 });
 
 const AUDIENCE = [
-  { icon: UserRound, title: "어르신", body: "작은 글씨와 한자어가 가득한 고지서, 안내문이 부담스러운 분" },
-  { icon: School, title: "어린이·청소년", body: "가정통신문이나 약 설명서를 스스로 읽어 보고 싶은 학생" },
-  { icon: Languages, title: "한국어 학습자", body: "일상 한국어는 되지만 행정·법률 용어가 낯선 분" },
-  { icon: FileSearch, title: "낯선 서류를 처음 만난 사람", body: "첫 계약, 첫 신고처럼 처음 보는 서류 앞에 선 누구나" },
+  {
+    icon: UserRound,
+    title: "어르신",
+    body: "작은 글씨와 한자어가 가득한 고지서, 안내문이 부담스러운 분",
+  },
+  {
+    icon: School,
+    title: "어린이·청소년",
+    body: "가정통신문이나 약 설명서를 스스로 읽어 보고 싶은 학생",
+  },
+  {
+    icon: Languages,
+    title: "한국어 학습자",
+    body: "일상 한국어는 되지만 행정·법률 용어가 낯선 분",
+  },
+  {
+    icon: FileSearch,
+    title: "낯선 서류를 처음 만난 사람",
+    body: "첫 계약, 첫 신고처럼 처음 보는 서류 앞에 선 누구나",
+  },
 ];
 
 const STEPS = [
   { icon: PenLine, title: "글 입력", body: "어려운 글을 붙여 넣고 읽을 사람의 수준을 골라요." },
   { icon: Cpu, title: "AI 변환", body: "AI가 수준별 규칙에 맞춰 문장과 단어를 쉽게 바꿔요." },
-  { icon: ShieldCheck, title: "변환 오류 확인", body: "원문과 쉬운 글의 숫자·날짜가 같은지 따로 검사해요." },
-  { icon: BookMarked, title: "결과와 단어장", body: "요약, 쉬운 글, 단어 풀이를 보고 단어를 단어장에 모아요." },
+  {
+    icon: ShieldCheck,
+    title: "변환 오류 확인",
+    body: "원문과 쉬운 글의 숫자·날짜가 같은지 따로 검사해요.",
+  },
+  {
+    icon: BookMarked,
+    title: "결과와 단어장",
+    body: "요약, 쉬운 글, 단어 풀이를 보고 단어를 단어장에 모아요.",
+  },
 ];
 
 const RULES: { row: string; elementary: string; middle: string; learner: string }[] = [
@@ -81,12 +109,22 @@ const RULES: { row: string; elementary: string; middle: string; learner: string 
 ];
 
 const CAUTIONS = [
-  { title: "AI는 틀릴 수 있어요", body: "바뀐 글이 원문의 뜻과 다를 수 있어요. 중요한 내용은 꼭 원문과 비교해 주세요." },
+  {
+    title: "AI는 틀릴 수 있어요",
+    body: "바뀐 글이 원문의 뜻과 다를 수 있어요. 중요한 내용은 꼭 원문과 비교해 주세요.",
+  },
   {
     title: "오류 확인은 숫자·날짜만 검사해요",
     body: "문장의 뜻이 맞는지, 빠진 조건이 없는지까지는 검사하지 않아요.",
   },
-  { title: "개인정보는 넣지 마세요", body: "이름, 주민등록번호, 주소, 전화번호, 계좌번호는 지우고 넣어 주세요." },
+  {
+    title: "단어 뜻풀이는 국립국어원 우리말샘에서 가져와요",
+    body: "어려운 단어 풀이는 국립국어원 우리말샘(CC BY-SA 2.0 KR)의 뜻풀이를 읽는 사람에 맞게 쉬운 말로 고쳐 쓴 것이에요. 사전에서 찾지 못한 단어는 ‘AI 풀이’로 따로 표시해요.",
+  },
+  {
+    title: "개인정보는 넣지 마세요",
+    body: "이름, 주민등록번호, 주소, 전화번호, 계좌번호는 지우고 넣어 주세요.",
+  },
   {
     title: "법률·의료 상담을 대신하지 않아요",
     body: "계약, 소송, 약 복용처럼 중요한 결정은 변호사, 의사, 약사 같은 전문가와 상의하세요.",
@@ -94,8 +132,14 @@ const CAUTIONS = [
 ];
 
 const PLANS = [
-  { title: "자체 난이도 판별 모델", body: "글이 얼마나 어려운지 먼저 재고, 어디가 어려운지 짚어 줘요." },
-  { title: "자체 변환 모델", body: "공공·법률·의료 글에 맞춰 직접 학습한 모델로 더 정확하게 바꿔요." },
+  {
+    title: "자체 난이도 판별 모델",
+    body: "글이 얼마나 어려운지 먼저 재고, 어디가 어려운지 짚어 줘요.",
+  },
+  {
+    title: "자체 변환 모델",
+    body: "공공·법률·의료 글에 맞춰 직접 학습한 모델로 더 정확하게 바꿔요.",
+  },
   { title: "시선 추적", body: "읽다가 오래 머무는 곳을 알아채 그 부분을 더 쉽게 풀어 줘요." },
 ];
 
@@ -118,12 +162,12 @@ function AboutPage() {
       <Section id="why" title="만든 이유">
         <div className="max-w-3xl space-y-4 rounded-2xl border bg-card p-6 md:p-8">
           <p>
-            주민센터 안내문, 집 계약서, 약 설명서는 우리 생활에 꼭 필요한 글이에요. 그런데 이런 글일수록
-            ‘의거하여’, ‘임차인’, ‘복용’ 같은 어려운 말이 가득해요.
+            주민센터 안내문, 집 계약서, 약 설명서는 우리 생활에 꼭 필요한 글이에요. 그런데 이런
+            글일수록 ‘의거하여’, ‘임차인’, ‘복용’ 같은 어려운 말이 가득해요.
           </p>
           <p>
-            뜻을 몰라 중요한 날짜를 놓치거나, 잘못 이해해서 손해를 보는 일이 없도록, 읽는 사람의 눈높이에
-            맞춰 글을 풀어 주는 서비스를 만들었어요.
+            뜻을 몰라 중요한 날짜를 놓치거나, 잘못 이해해서 손해를 보는 일이 없도록, 읽는 사람의
+            눈높이에 맞춰 글을 풀어 주는 서비스를 만들었어요.
           </p>
         </div>
       </Section>
@@ -198,7 +242,10 @@ function AboutPage() {
       <Section id="cautions" title="이용 전 주의사항">
         <ul className="grid gap-4 md:grid-cols-2">
           {CAUTIONS.map((c) => (
-            <li key={c.title} className="flex gap-3 rounded-2xl border-2 border-destructive/35 bg-destructive-soft p-5">
+            <li
+              key={c.title}
+              className="flex gap-3 rounded-2xl border-2 border-destructive/35 bg-destructive-soft p-5"
+            >
               <AlertTriangle className="mt-1 size-6 shrink-0 text-destructive" aria-hidden="true" />
               <div>
                 <h3 className="text-[1.1875rem] text-destructive">
@@ -217,7 +264,10 @@ function AboutPage() {
           {PLANS.map((p, i) => (
             <li key={p.title} className="relative flex gap-4 pb-8 last:pb-0">
               {i < PLANS.length - 1 ? (
-                <span className="absolute top-10 bottom-0 left-[1.125rem] w-0.5 bg-border" aria-hidden="true" />
+                <span
+                  className="absolute top-10 bottom-0 left-[1.125rem] w-0.5 bg-border"
+                  aria-hidden="true"
+                />
               ) : null}
               <span className="relative grid size-9 shrink-0 place-items-center rounded-full border-2 border-primary bg-card font-bold text-primary">
                 {i + 1}
