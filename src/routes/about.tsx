@@ -50,20 +50,20 @@ const STEPS = [
 const RULES: { row: string; elementary: string; middle: string; learner: string }[] = [
   {
     row: "문장 길이",
-    elementary: "아주 짧게, 한 문장에 한 가지",
-    middle: "짧게, 필요하면 두 가지까지",
-    learner: "아주 짧게, 한 문장에 한 가지",
+    elementary: "한 문장 8어절 이하",
+    middle: "한 문장 12어절 안팎",
+    learner: "짧게(6~8어절), 한 문장에 한 가지",
   },
   {
     row: "어려운 단어",
     elementary: "모두 쉬운 우리말로 바꿔요",
-    middle: "쉬운 말로 바꾸고 원래 용어를 괄호에 함께",
-    learner: "자주 쓰는 기본 단어로 바꿔요",
+    middle: "꼭 필요한 용어는 남기고 괄호로 뜻을 풀어요",
+    learner: "국립국어원 초급 어휘 위주로 써요",
   },
   {
     row: "문장 끝",
     elementary: "‘-해요’ 말투",
-    middle: "‘-합니다’ 말투",
+    middle: "‘-해요’ 말투",
     learner: "‘-해요’ 말투, 같은 꼴로 반복",
   },
   {
