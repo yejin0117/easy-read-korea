@@ -8,8 +8,17 @@ export interface GlossaryEntry {
   base?: string;
   /** 뜻풀이를 어디서 가져왔는지: 우리말샘 사전 또는 AI */
   source?: "dict" | "ai";
-  /** 우리말샘에 실린 원래 뜻풀이 (source가 dict일 때) */
+  /** 우리말샘에 실린 사전 뜻 원문. 여러 단어로 된 표현이면 단어마다 하나 (source가 dict일 때) */
+  dictMeanings?: DictMeaning[];
+  /** 예전 결과(기록)에 남아 있을 수 있는 한 줄 사전 뜻 */
   dictDefinition?: string;
+}
+
+export interface DictMeaning {
+  /** 사전에서 찾은 기본형 */
+  headword: string;
+  /** 우리말샘 뜻풀이 원문 */
+  definition: string;
 }
 
 export interface Sample {
