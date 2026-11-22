@@ -84,7 +84,7 @@ export function parsePicks(raw: string): Pick[] {
 async function askPicks(
   candidates: Candidate[],
   level: Level,
-  apiKey: string,
+  apiKeys: string[],
   models: string[],
   fetcher: Fetcher,
 ): Promise<Pick[] | null> {
@@ -97,29 +97,32 @@ async function askPicks(
       responseSchema: PICK_SCHEMA,
     },
   });
-  for (const model of models) {
-    try {
-      const res = await fetcher(
-        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json", "x-goog-api-key": apiKey },
-          signal: AbortSignal.timeout(15_000),
-          body,
-        },
-      );
-      if (!res.ok) {
-        console.error(`Gemini sense pick error ${res.status} (${model})`);
-        continue;
+  for (const apiKey of apiKeys) {
+    for (const model of models) {
+      try {
+        const res = await fetcher(
+          `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+          {
+            method: "POST",
+            headers: { "content-type": "application/json", "x-goog-api-key": apiKey },
+            signal: AbortSignal.timeout(15_000),
+            body,
+          },
+        );
+        if (!res.ok) {
+          console.error(`Gemini sense pick error ${res.status} (${model})`);
+          continue;
+        }
+        const payload = (await res.json()) as {
+          candidates?: { content?: { parts?: { text?: string }[] } }[];
+        };
+        const text =
+          payload.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+        const picks = parsePicks(text);
+        if (picks.length > 0) return picks;
+      } catch (error) {
+        console.error(`Gemini sense pick failed (${model})`, error);
       }
-      const payload = (await res.json()) as {
-        candidates?: { content?: { parts?: { text?: string }[] } }[];
-      };
-      const text = payload.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-      const picks = parsePicks(text);
-      if (picks.length > 0) return picks;
-    } catch (error) {
-      console.error(`Gemini sense pick failed (${model})`, error);
     }
   }
   return null;
@@ -167,11 +170,12 @@ export async function addDictionaryMeanings(options: {
   original: string;
   level: Level;
   opendictKey: string;
-  geminiKey: string;
+  /** 앞에서부터 차례로 시도할 Gemini 키 */
+  geminiKeys: string[];
   models: string[];
   fetcher?: Fetcher;
 }): Promise<GlossaryEntry[]> {
-  const { words, original, level, opendictKey, geminiKey, models, fetcher = fetch } = options;
+  const { words, original, level, opendictKey, geminiKeys, models, fetcher = fetch } = options;
   if (words.length === 0) return words;
 
   const candidates: Candidate[] = await Promise.all(
@@ -183,6 +187,6 @@ export async function addDictionaryMeanings(options: {
   );
 
   const found = candidates.filter((c) => c.senses.length > 0);
-  const picks = found.length > 0 ? await askPicks(found, level, geminiKey, models, fetcher) : null;
+  const picks = found.length > 0 ? await askPicks(found, level, geminiKeys, models, fetcher) : null;
   return mergeMeanings(candidates, picks);
 }
