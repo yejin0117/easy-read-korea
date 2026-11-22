@@ -118,7 +118,7 @@ describe("Gemini 응답 정리", () => {
     expect(elementary).toContain("8어절 이하");
     expect(middle).toContain("[읽는 사람: 중학생]");
     expect(learner).toContain("[읽는 사람: 한국어를 배우기 시작한 어른]");
-    expect(learner).toContain("'대출 정지'라고 해요");
+    expect(learner).toContain("대출 정지가 돼요");
     expect(elementary).not.toContain("[읽는 사람: 중학생]");
     for (const p of [elementary, middle, learner]) {
       expect(p).toContain("단어만 바꿔 끼우지 마");
@@ -127,6 +127,10 @@ describe("Gemini 응답 정리", () => {
       expect(p).toContain("살 사람 X");
       expect(p).toContain("쉼표까지 원문 표기 그대로");
       expect(p).toContain("원문의 어려운 낱말을 요약에 그대로 쓰지 마");
+      expect(p).toContain("원문 문장의 종류를 바꾸지 마");
+      expect(p).toContain("조건이 사라지지 않게 해");
+      expect(p).toContain("뜻을 설명하는 문장이나 괄호 설명은 쓰지 마");
+      expect(p).not.toContain("뜻을 설명하는 말은 덧붙여도 돼");
     }
   });
 

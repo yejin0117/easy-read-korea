@@ -57,7 +57,7 @@ const RULES: { row: string; elementary: string; middle: string; learner: string 
   {
     row: "어려운 단어",
     elementary: "모두 쉬운 우리말로 바꿔요",
-    middle: "꼭 필요한 용어는 남기고 괄호로 뜻을 풀어요",
+    middle: "꼭 필요한 용어만 남기고 나머지는 쉬운 말로 바꿔요",
     learner: "국립국어원 초급 어휘 위주로 써요",
   },
   {
