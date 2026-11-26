@@ -22,9 +22,7 @@ function NotFoundComponent() {
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">페이지를 찾을 수 없어요</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          주소가 바뀌었거나 없는 페이지예요.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">주소가 바뀌었거나 없는 페이지예요.</p>
         <div className="mt-6">
           <Link
             to="/"
@@ -87,12 +85,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "풀어읽기 — 어려운 글을 쉬운 말로" },
       {
         name: "description",
-        content: "공문, 계약서, 약 설명서처럼 어려운 글을 읽는 사람 수준에 맞춰 쉬운 말로 풀어 드려요.",
+        content:
+          "공문, 계약서, 약 설명서처럼 어려운 글을 읽는 사람 수준에 맞춰 쉬운 말로 풀어 드려요.",
       },
       { property: "og:title", content: "풀어읽기 — 어려운 글을 쉬운 말로" },
       {
         property: "og:description",
-        content: "공문, 계약서, 약 설명서처럼 어려운 글을 읽는 사람 수준에 맞춰 쉬운 말로 풀어 드려요.",
+        content:
+          "공문, 계약서, 약 설명서처럼 어려운 글을 읽는 사람 수준에 맞춰 쉬운 말로 풀어 드려요.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -104,6 +104,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://cdn.jsdelivr.net", crossOrigin: "anonymous" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;700;900&display=swap",
+      },
       {
         rel: "stylesheet",
         href: "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css",

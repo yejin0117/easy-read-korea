@@ -19,17 +19,28 @@ export function ConfirmDelete({
   description,
   onConfirm,
   iconOnly = false,
+  textOnly = false,
 }: {
   label: string;
   title: string;
   description: string;
   onConfirm: () => void;
   iconOnly?: boolean;
+  /** 카드 오른쪽 위에 놓는 작은 글자 버튼 */
+  textOnly?: boolean;
 }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        {iconOnly ? (
+        {textOnly ? (
+          <button
+            type="button"
+            aria-label={label}
+            className="inline-flex min-h-9 shrink-0 items-center rounded-full px-2 text-sm text-muted-foreground hover:text-destructive"
+          >
+            삭제
+          </button>
+        ) : iconOnly ? (
           <Button variant="destructive-outline" size="icon" aria-label={label}>
             <Trash2 aria-hidden="true" />
           </Button>
@@ -51,7 +62,10 @@ export function ConfirmDelete({
           <AlertDialogCancel className={buttonVariants({ variant: "outline" })}>
             그대로 두기
           </AlertDialogCancel>
-          <AlertDialogAction className={buttonVariants({ variant: "destructive" })} onClick={onConfirm}>
+          <AlertDialogAction
+            className={buttonVariants({ variant: "destructive" })}
+            onClick={onConfirm}
+          >
             삭제하기
           </AlertDialogAction>
         </AlertDialogFooter>

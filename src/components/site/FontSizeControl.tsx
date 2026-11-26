@@ -21,6 +21,7 @@ export function FontSizeControl() {
 
   return (
     <div className="flex items-center gap-1.5" role="group" aria-label="글씨 크기 조절">
+      <span className="mr-1">글씨 크기</span>
       <Button
         variant="outline"
         size="icon"

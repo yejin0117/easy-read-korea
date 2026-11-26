@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { FileText, Loader2, Sparkles, X } from "lucide-react";
+import { ArrowLeft, Loader2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { ResultView } from "@/components/convert/ResultView";
@@ -69,7 +69,7 @@ function ConvertPage() {
 
   useEffect(() => {
     if (result && !loading) {
-      resultHeading.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.scrollTo({ top: 0 });
       resultHeading.current?.focus({ preventScroll: true });
     }
   }, [result, loading]);
@@ -105,146 +105,153 @@ function ConvertPage() {
     void navigate({ search: { id: next.id }, replace: true });
   }
 
+  function backToInput() {
+    setResult(null);
+    void navigate({ search: {}, replace: true });
+    requestAnimationFrame(() => textareaRef.current?.focus());
+  }
+
+  const showResult = result !== null && !loading;
+
   return (
-    <div className="container-page py-10 md:py-14">
-      <h1 className="text-[2rem] md:text-[2.5rem]">변환하기</h1>
-      <p className="mt-2">어려운 글을 넣고, 읽을 사람의 수준을 골라 주세요.</p>
+    <div className="container-page max-w-[56rem] py-10 md:py-14">
+      {showResult ? (
+        <>
+          <Button variant="outline" size="sm" onClick={backToInput}>
+            <ArrowLeft aria-hidden="true" />
+            다시 입력
+          </Button>
+          <ResultView ref={resultHeading} result={result} />
+        </>
+      ) : (
+        <>
+          <h1 className="text-[2rem] md:text-[2.5rem]">
+            어떤 글을 <span className="brand-mark">쉽게</span> 바꿀까요?
+          </h1>
 
-      <div className="mt-8 space-y-8 rounded-2xl border bg-card p-5 md:p-8">
-        {/* 글 입력 */}
-        <div>
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <label htmlFor="source-text" className="text-[1.25rem] font-bold">
-              1. 어려운 글 넣기
+          <div className="mt-6">
+            <label htmlFor="source-text" className="sr-only">
+              어려운 글 넣기
             </label>
-            <p className="text-base text-muted-foreground" aria-live="polite">
-              {text.length.toLocaleString("ko-KR")} / {MAX_LENGTH.toLocaleString("ko-KR")}자
-            </p>
-          </div>
-
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className="text-base font-semibold">예시 불러오기</span>
-            {SAMPLES.map((s) => (
-              <Button
-                key={s.id}
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setText(s.original);
-                  setError(null);
+            <div className="relative">
+              <Textarea
+                id="source-text"
+                ref={textareaRef}
+                value={text}
+                maxLength={MAX_LENGTH}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  if (error) setError(null);
                 }}
-              >
-                <FileText aria-hidden="true" />
-                {s.label}
-              </Button>
-            ))}
-          </div>
-
-          <div className="relative mt-3">
-            <Textarea
-              id="source-text"
-              ref={textareaRef}
-              value={text}
-              maxLength={MAX_LENGTH}
-              onChange={(e) => {
-                setText(e.target.value);
-                if (error) setError(null);
-              }}
-              placeholder="여기에 공문, 계약서, 약 설명서 같은 글을 붙여 넣으세요."
-              className="min-h-72"
-              aria-invalid={error ? true : undefined}
-              aria-describedby={error ? "text-error privacy-note" : "privacy-note"}
-            />
-            {text ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 right-2"
-                aria-label="입력한 글 모두 지우기"
-                onClick={() => {
-                  setText("");
-                  textareaRef.current?.focus();
-                }}
-              >
-                <X aria-hidden="true" />
-              </Button>
+                placeholder="어려운 글을 여기에 붙여넣으세요."
+                className="min-h-60 rounded-3xl border-border bg-card p-5 text-[1.0625rem] shadow-xs"
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? "text-error privacy-note" : "privacy-note"}
+              />
+              {text ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2"
+                  aria-label="입력한 글 모두 지우기"
+                  onClick={() => {
+                    setText("");
+                    textareaRef.current?.focus();
+                  }}
+                >
+                  <X aria-hidden="true" />
+                </Button>
+              ) : null}
+            </div>
+            <div className="mt-2 flex flex-wrap justify-between gap-2 text-sm text-muted-foreground">
+              <p id="privacy-note">
+                이름, 주민등록번호, 주소, 전화번호, 계좌번호는 지우고 넣어 주세요.
+              </p>
+              <p aria-live="polite">
+                {text.length.toLocaleString("ko-KR")} / {MAX_LENGTH.toLocaleString("ko-KR")}자
+              </p>
+            </div>
+            {error ? (
+              <div id="text-error" className="mt-3">
+                <Notice tone="warning" title="글을 넣어 주세요">
+                  {error}
+                </Notice>
+              </div>
             ) : null}
           </div>
 
-          {error ? (
-            <div id="text-error" className="mt-3">
-              <Notice tone="warning" title="글을 넣어 주세요">
-                {error}
-              </Notice>
-            </div>
-          ) : null}
-
-          <div id="privacy-note" className="mt-3">
-            <Notice tone="warning" title="개인정보가 담긴 글은 넣지 마세요">
-              이름, 주민등록번호, 주소, 전화번호, 계좌번호는 지우고 넣어 주세요.
-            </Notice>
-          </div>
-        </div>
-
-        {/* 수준 선택 */}
-        <fieldset>
-          <legend className="text-[1.25rem] font-bold">2. 누가 읽나요?</legend>
-          <div
-            role="radiogroup"
-            aria-label="읽는 사람 수준"
-            className="mt-3 grid gap-3 sm:grid-cols-3"
-          >
-            {LEVELS.map((l) => {
-              const selected = level === l.id;
-              return (
+          <div className="mt-6">
+            <p className="text-[0.9375rem] text-muted-foreground">예시 글</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {SAMPLES.map((s) => (
                 <button
-                  key={l.id}
+                  key={s.id}
                   type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  onClick={() => setLevel(l.id)}
-                  className={
-                    selected
-                      ? "flex min-h-11 flex-col items-start rounded-2xl border-2 border-primary bg-primary-soft px-5 py-4 text-left"
-                      : "flex min-h-11 flex-col items-start rounded-2xl border-2 border-input bg-card px-5 py-4 text-left hover:border-primary"
-                  }
+                  onClick={() => {
+                    setText(s.original);
+                    setError(null);
+                  }}
+                  className="min-h-9 rounded-full border border-input bg-card px-3.5 text-sm font-medium shadow-xs transition-colors hover:bg-secondary"
                 >
-                  <span className="flex items-center gap-2 text-[1.1875rem] font-bold">
-                    <span
-                      aria-hidden="true"
-                      className={
-                        selected
-                          ? "grid size-5 place-items-center rounded-full border-2 border-primary"
-                          : "grid size-5 place-items-center rounded-full border-2 border-input"
-                      }
-                    >
-                      {selected ? <span className="size-2.5 rounded-full bg-primary" /> : null}
-                    </span>
-                    {l.label}
-                  </span>
-                  <span className="mt-1 text-base text-muted-foreground">{l.hint}</span>
+                  {s.label}
                 </button>
-              );
-            })}
+              ))}
+            </div>
           </div>
-        </fieldset>
 
-        <Button size="xl" className="w-full" onClick={handleConvert} disabled={loading}>
+          <fieldset className="mt-6">
+            <legend className="text-[0.9375rem] text-muted-foreground">읽을 사람</legend>
+            <div
+              role="radiogroup"
+              aria-label="읽는 사람 수준"
+              className="mt-2 grid gap-2 sm:grid-cols-3"
+            >
+              {LEVELS.map((l) => {
+                const selected = level === l.id;
+                return (
+                  <button
+                    key={l.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    title={l.hint}
+                    onClick={() => setLevel(l.id)}
+                    className={
+                      selected
+                        ? "min-h-14 rounded-2xl border-2 border-primary bg-highlight px-4 font-bold"
+                        : "min-h-14 rounded-2xl border-2 border-border bg-card px-4 font-bold hover:bg-secondary"
+                    }
+                  >
+                    {l.label}
+                    <span className="sr-only"> ({l.hint})</span>
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
+
+          <Button
+            size="lg"
+            className="mt-6 w-full disabled:bg-[#9a9084] disabled:opacity-100"
+            onClick={handleConvert}
+            disabled={loading || text.trim().length === 0}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin" aria-hidden="true" />
+                쉬운 글로 바꾸는 중…
+              </>
+            ) : (
+              "변환하기"
+            )}
+          </Button>
           {loading ? (
-            <>
-              <Loader2 className="animate-spin" aria-hidden="true" />
-              풀어 읽는 중…
-            </>
-          ) : (
-            <>
-              <Sparkles aria-hidden="true" />
-              풀어읽기
-            </>
-          )}
-        </Button>
-      </div>
-
-      {result && !loading ? <ResultView ref={resultHeading} result={result} /> : null}
+            <p className="mt-3 text-center text-sm text-muted-foreground" aria-live="polite">
+              AI가 문장을 새로 쓰고 있어요. 10~20초쯤 걸릴 수 있어요.
+            </p>
+          ) : null}
+        </>
+      )}
     </div>
   );
 }

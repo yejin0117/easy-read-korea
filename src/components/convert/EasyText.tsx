@@ -34,7 +34,7 @@ function ChangedWord({
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[min(22rem,calc(100vw-2rem))] rounded-2xl border-2 p-4 text-base leading-[1.6] shadow-lg"
+        className="w-[min(22rem,calc(100vw-2rem))] rounded-2xl border p-4 text-base leading-[1.6] shadow-lg"
         onOpenAutoFocus={(e) => e.preventDefault()}
         side="top"
       >
@@ -58,17 +58,22 @@ function ChangedWord({
 export function EasyText({ markup, glossary }: { markup: string; glossary: GlossaryItem[] }) {
   const paragraphs = parseEasy(markup);
   return (
-    <div className="space-y-6 text-[1.375rem] leading-[1.8]">
+    <div className="space-y-5 text-[1.125rem] leading-[1.9]">
       {paragraphs.map((p, i) => (
         <div key={i}>
-          {p.heading ? <h4 className="mb-1 text-[1.25rem] text-primary">{p.heading}</h4> : null}
+          {p.heading ? <h4 className="mb-1 text-[1.125rem]">{p.heading}</h4> : null}
           {p.lines.map((line, j) => (
             <p key={j} className={j > 0 ? "mt-2" : undefined}>
               {line.map((seg, k) =>
                 seg.type === "text" ? (
                   <span key={k}>{seg.text}</span>
                 ) : (
-                  <ChangedWord key={k} text={seg.text} original={seg.original} glossary={glossary} />
+                  <ChangedWord
+                    key={k}
+                    text={seg.text}
+                    original={seg.original}
+                    glossary={glossary}
+                  />
                 ),
               )}
             </p>
