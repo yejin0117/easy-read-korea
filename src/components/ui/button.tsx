@@ -12,13 +12,15 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground hover:bg-primary-hover",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         "destructive-outline":
-          "border-2 border-destructive/40 bg-card text-destructive hover:bg-destructive-soft",
-        outline: "border-2 border-input bg-card text-foreground hover:border-primary hover:bg-primary-soft",
+          "border border-destructive/40 bg-card text-destructive hover:bg-destructive-soft",
+        outline: "border border-input bg-card text-foreground shadow-xs hover:bg-secondary",
         secondary: "bg-secondary text-secondary-foreground hover:bg-accent",
         ghost: "text-foreground hover:bg-secondary",
         link: "text-primary underline underline-offset-4 hover:text-primary-hover",
         toggle:
-          "border-2 border-input bg-card text-foreground hover:border-primary aria-pressed:border-primary aria-pressed:bg-primary-soft aria-checked:border-primary aria-checked:bg-primary-soft",
+          "border border-input bg-card text-foreground hover:bg-secondary aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-checked:border-primary aria-checked:bg-primary aria-checked:text-primary-foreground",
+        /** 어두운 카드 위에 놓는 밝은 버튼 */
+        light: "bg-card text-foreground hover:bg-primary-soft",
       },
       size: {
         default: "min-h-11 px-5 py-2 text-base",

@@ -19,20 +19,20 @@ export function WordQuizCard({ words, source }: { words: QuizWord[]; source: str
   const [open, setOpen] = useState(false);
   if (!canMakeQuiz(words)) return null;
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border bg-card p-6 md:flex-row md:items-center md:justify-between md:p-8">
+    <div className="flex items-center justify-between gap-4 rounded-3xl bg-primary p-6 text-primary-foreground md:p-7">
       <div>
-        <h3 className="text-[1.375rem]">어려운 단어 퀴즈</h3>
-        <p className="mt-1">
-          방금 읽은 글의 어려운 단어를 얼마나 기억하는지 확인해 보세요. 쉬운 말을 고르면 돼요.
+        <h3 className="text-[1.25rem]">단어 퀴즈</h3>
+        <p className="mt-1 text-[0.9375rem] opacity-85">
+          어려운 단어 {Math.min(words.length, 5)}문제로 확인해 봐요.
         </p>
       </div>
-      <Button className="shrink-0 self-start md:self-center" onClick={() => setOpen(true)}>
+      <Button variant="light" size="sm" className="shrink-0" onClick={() => setOpen(true)}>
         퀴즈 풀기
       </Button>
       <WordQuizDialog
         open={open}
         onOpenChange={setOpen}
-        title="어려운 단어 퀴즈"
+        title="단어 퀴즈"
         words={words}
         mode={{ kind: "result", source }}
       />
@@ -56,9 +56,9 @@ export function WordQuizDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl sm:rounded-2xl">
-        <DialogTitle className="text-[1.375rem] font-bold">{title}</DialogTitle>
-        <DialogDescription className="text-base">
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-background sm:max-w-md sm:rounded-2xl">
+        <DialogTitle className="font-serif text-[1.375rem] font-bold">{title}</DialogTitle>
+        <DialogDescription className="sr-only">
           단어의 쉬운 말을 골라 보세요. 언제든 닫고 나갈 수 있어요.
         </DialogDescription>
         {/* 열 때마다 새 문제로 시작 */}
@@ -121,15 +121,15 @@ function QuizRunner({
   const correct = picked === q.answerIndex;
 
   return (
-    <div className="space-y-5">
-      <p className="text-base font-semibold text-muted-foreground">
-        {index + 1} / {questions.length}
-      </p>
-      <p className="text-[1.25rem]">
-        <span className="font-bold">‘{q.item.word}’</span>의 쉬운 말은 무엇일까요?
-      </p>
+    <div className="space-y-4">
+      <div>
+        <p className="text-sm font-medium text-muted-foreground">
+          {index + 1} / {questions.length}
+        </p>
+        <p className="mt-1 text-[1.1875rem] font-bold">‘{q.item.word}’의 쉬운 말은 무엇일까요?</p>
+      </div>
 
-      <div role="group" aria-label="보기" className="grid gap-3 sm:grid-cols-2">
+      <div role="group" aria-label="보기" className="grid gap-2.5">
         {q.choices.map((choice, i) => {
           const isAnswer = i === q.answerIndex;
           const isPicked = i === picked;
@@ -145,24 +145,23 @@ function QuizRunner({
                 else setWrongWords((ws) => [...ws, q.item]);
               }}
               className={cn(
-                "flex min-h-14 items-center justify-between gap-3 rounded-xl border-2 px-4 py-3 text-left text-lg transition-colors",
+                "flex min-h-13 items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3 text-left transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                !answered &&
-                  "border-border bg-background hover:border-primary hover:bg-primary-soft",
-                answered && isAnswer && "border-primary bg-primary-soft font-semibold",
+                !answered && "border-input bg-card hover:border-primary",
+                answered && isAnswer && "border-primary bg-highlight font-semibold",
                 answered && isPicked && !isAnswer && "border-destructive bg-destructive-soft",
                 answered && !isPicked && !isAnswer && "border-border opacity-60",
               )}
             >
               <span>{choice}</span>
               {answered && isAnswer ? (
-                <span className="inline-flex shrink-0 items-center gap-1 text-base text-primary">
+                <span className="inline-flex shrink-0 items-center gap-1 text-sm">
                   <Check className="size-5" aria-hidden="true" />
                   정답
                 </span>
               ) : null}
               {answered && isPicked && !isAnswer ? (
-                <span className="inline-flex shrink-0 items-center gap-1 text-base text-destructive">
+                <span className="inline-flex shrink-0 items-center gap-1 text-sm text-destructive">
                   <X className="size-5" aria-hidden="true" />
                   내가 고른 답
                 </span>
@@ -176,20 +175,18 @@ function QuizRunner({
         {answered ? (
           <div
             className={cn(
-              "space-y-2 rounded-xl border p-4",
-              correct
-                ? "border-primary/30 bg-primary-soft"
-                : "border-destructive/35 bg-destructive-soft",
+              "space-y-1.5 rounded-2xl border p-4 text-[0.9375rem]",
+              correct ? "border-border bg-card" : "border-destructive/35 bg-destructive-soft",
             )}
           >
-            <p className={cn("text-lg font-bold", correct ? "text-primary" : "text-destructive")}>
+            <p className={cn("font-bold", correct ? "text-foreground" : "text-destructive")}>
               {correct ? "맞았어요!" : `아쉬워요. 정답은 ‘${q.item.easy}’예요.`}
             </p>
             <p>
               <span className="font-semibold">{q.item.word}</span>: {q.item.meaning}
             </p>
             {q.item.sentence ? (
-              <p className="text-base text-muted-foreground">나온 문장: “{q.item.sentence}”</p>
+              <p className="text-sm text-muted-foreground">나온 문장: {q.item.sentence}</p>
             ) : null}
           </div>
         ) : null}
@@ -199,6 +196,7 @@ function QuizRunner({
         {answered ? <WordAction word={q.item} mode={mode} vocab={vocab} /> : null}
         {answered ? (
           <Button
+            size="sm"
             onClick={() => {
               setIndex((i) => i + 1);
               setPicked(null);
@@ -207,7 +205,7 @@ function QuizRunner({
             {index === questions.length - 1 ? "결과 보기" : "다음 문제"}
           </Button>
         ) : null}
-        <Button variant="ghost" className="ml-auto" onClick={onExit}>
+        <Button variant="ghost" size="sm" className="ml-auto" onClick={onExit}>
           그만하기
         </Button>
       </div>
@@ -277,29 +275,37 @@ function ResultSummary({
 
   return (
     <div className="space-y-5" aria-live="polite">
-      <p className="text-[1.25rem] font-bold">
-        {total}문제 중 <span className="text-primary">{rightWords.length}문제</span>를 맞혔어요.
-      </p>
+      <div className="pt-2 text-center">
+        <p className="font-serif text-[3rem] leading-none" aria-hidden="true">
+          <span className="brand-mark">{rightWords.length}</span> / {total}
+        </p>
+        <p className="sr-only">
+          {total}문제 중 {rightWords.length}문제를 맞혔어요.
+        </p>
+        <p className="mt-3 text-muted-foreground">
+          {wrongWords.length > 0
+            ? "틀린 단어를 다시 살펴봐요."
+            : "모두 맞혔어요. 어려운 단어를 잘 이해했어요!"}
+        </p>
+      </div>
 
       {wrongWords.length > 0 ? (
         <div className="space-y-3">
-          <p className="font-semibold">다시 볼 단어</p>
-          <ul className="divide-y rounded-xl border">
+          <p className="text-sm font-semibold text-muted-foreground">다시 볼 단어</p>
+          <ul className="divide-y rounded-2xl border bg-card">
             {wrongWords.map((w) => (
               <li key={w.id ?? w.word} className="px-4 py-3">
                 <span className="font-bold">{w.word}</span>
                 <span aria-hidden="true"> → </span>
                 <span className="sr-only">의 쉬운 말은 </span>
-                <span className="font-semibold text-primary">{w.easy}</span>
+                <span className="font-semibold">{w.easy}</span>
               </li>
             ))}
           </ul>
         </div>
-      ) : (
-        <p>모두 맞혔어요. 어려운 단어를 잘 이해했어요!</p>
-      )}
+      ) : null}
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap justify-center gap-2">
         {mode.kind === "result" && unsaved.length > 0 ? (
           <Button
             onClick={() => {
